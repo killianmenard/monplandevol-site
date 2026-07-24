@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mon Plan de Vol — votre briefing VFR prêt en 2 minutes</title>
+<meta name="description" content="Mon Plan de Vol rassemble météo aviation, espaces aériens, RTBA et avitaillement sur un seul écran. Préparation au sol pour pilotes VFR loisir — autogire, ULM, avion léger. Gratuit.">
+<meta property="og:title" content="Mon Plan de Vol — votre briefing VFR prêt en 2 minutes">
+<meta property="og:description" content="Météo, espaces aériens, RTBA, avitaillement : tout votre pré-vol sur un seul écran. Gratuit pour vos vols de tous les jours.">
+<meta property="og:url" content="https://monplandevol.fr">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#eef1f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1326" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>document.documentElement.setAttribute('data-theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light'));</script>
+<style>
+/* ===== Tokens Aero Glass (extraits, auto-portés) ===== */
+:root{
+  --blur-p:28px; --blur-c:24px; --r-xl:24px; --r-lg:16px; --r-md:12px; --r-pill:999px;
+  --pad:20px; --maxw:1100px; --ease:cubic-bezier(.4,0,.2,1); --t-theme:.5s;
+  --font-display:'Plus Jakarta Sans',system-ui,sans-serif;
+  --font-body:'Hanken Grotesk',system-ui,sans-serif;
+}
+html[data-theme="dark"]{
+  --bg-0:#0b1326; --bg-1:#131b2e;
+  --glow-a:rgba(0,219,231,.14); --glow-a-xy:78% 6%;
+  --glow-b:rgba(112,0,255,.13); --glow-b-xy:8% 94%;
+  --panel:rgba(255,255,255,.07); --panel-bd:rgba(255,255,255,.11);
+  --ag-card:rgba(255,255,255,.12); --card-bd:rgba(255,255,255,.16);
+  --inlay:rgba(255,255,255,.04); --inlay-bd:rgba(255,255,255,.07);
+  --text:#dae2fd; --text-2:#b9cacb; --text-3:#849495;
+  --accent:#00dbe7; --accent-2:#74f5ff; --accent-ink:#002022;
+  --accent-soft:rgba(0,219,231,.15); --accent-bd:rgba(0,219,231,.34);
+  --amber:#ffce6b; --amber-soft:rgba(255,206,107,.16);
+  --good:#3fe0c0; --shadow:rgba(0,0,0,.5); --hi:rgba(255,255,255,.15);
+}
+html[data-theme="light"]{
+  --bg-0:#eef1f9; --bg-1:#e6ebf4;
+  --glow-a:rgba(255,168,120,.34); --glow-a-xy:82% 88%;
+  --glow-b:rgba(120,150,255,.24); --glow-b-xy:6% 6%;
+  --panel:rgba(255,255,255,.55); --panel-bd:rgba(255,255,255,.85);
+  --ag-card:rgba(255,255,255,.38); --card-bd:rgba(20,32,60,.11);
+  --inlay:rgba(255,255,255,.5); --inlay-bd:rgba(20,32,60,.06);
+  --text:#16203a; --text-2:#44546d; --text-3:#6c7c8e;
+  --accent:#0792a6; --accent-2:#0aa6bd; --accent-ink:#ffffff;
+  --accent-soft:rgba(7,146,166,.12); --accent-bd:rgba(7,146,166,.3);
+  --amber:#a9741a; --amber-soft:rgba(169,116,26,.14);
+  --good:#0a9a82; --shadow:rgba(40,55,95,.18); --hi:rgba(255,255,255,.9);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; color:var(--text); font-family:var(--font-body); font-size:16px; line-height:1.65;
+  background:linear-gradient(158deg,var(--bg-0),var(--bg-1)) fixed; min-height:100vh;
+  transition:color var(--t-theme) var(--ease);
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(900px 600px at var(--glow-a-xy), var(--glow-a), transparent 58%),
+    radial-gradient(820px 640px at var(--glow-b-xy), var(--glow-b), transparent 60%);
+  transition:background var(--t-theme) var(--ease);
+}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px;}
+h1,h2,h3{font-family:var(--font-display); letter-spacing:-.02em; line-height:1.15; margin:0;}
+a{color:var(--accent);}
+img{max-width:100%; display:block;}
+section{padding:64px 0;}
+.sec-label{font-family:var(--font-display); font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); margin-bottom:10px;}
+.sec-title{font-size:clamp(26px,4vw,38px); font-weight:800; margin-bottom:14px;}
+.sec-sub{color:var(--text-2); max-width:640px; margin:0 0 34px;}
+
+/* ===== Nav ===== */
+nav{position:sticky; top:0; z-index:50; padding:14px 0; }
+.nav-pill{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  background:var(--panel); border:1px solid var(--panel-bd); border-radius:var(--r-pill);
+  padding:10px 20px; -webkit-backdrop-filter:blur(var(--blur-p)) saturate(150%); backdrop-filter:blur(var(--blur-p)) saturate(150%);
+  box-shadow:inset 0 1px 0 var(--hi), 0 14px 40px var(--shadow);
+}
+.brand{display:flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:800; font-size:17px; color:var(--text); text-decoration:none;}
+.brand svg{width:20px; height:20px; color:var(--accent);}
+.nav-links{display:flex; gap:22px; align-items:center;}
+.nav-links a{color:var(--text-2); text-decoration:none; font-weight:600; font-size:14px;}
+.nav-links a:hover{color:var(--accent);}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 22px; border-radius:var(--r-md); font-family:var(--font-display); font-weight:700; font-size:15px;
+  text-decoration:none; cursor:pointer; border:1px solid var(--accent-bd); transition:.2s var(--ease);
+}
+.btn-primary{border:none; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink);
+  box-shadow:0 8px 24px var(--accent-soft);}
+.btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px var(--accent-soft);}
+.btn-ghost{background:var(--accent-soft); color:var(--accent);}
+.btn-ghost:hover{box-shadow:0 0 16px var(--accent-soft);}
+.nav-cta{padding:9px 18px; font-size:14px;}
+@media (max-width:760px){ .nav-links{display:none;} }
+
+/* ===== Hero ===== */
+.hero{padding:72px 0 56px; text-align:center;}
+.hero h1{font-size:clamp(32px,5.6vw,58px); font-weight:800; max-width:900px; margin:0 auto 20px;}
+.hero .rotator{
+  display:inline-block; position:relative; color:var(--accent); min-width:5.2em; text-align:left; vertical-align:bottom;
+}
+.hero .rotator span{
+  position:absolute; left:0; top:0; opacity:0; transform:translateY(14px); white-space:nowrap;
+  transition:opacity .45s var(--ease), transform .45s var(--ease);
+}
+.hero .rotator span.on{position:relative; opacity:1; transform:translateY(0);}
+.hero p.lead{color:var(--text-2); font-size:clamp(16px,2vw,19px); max-width:660px; margin:0 auto 30px;}
+.hero-ctas{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:12px;}
+.hero-note{color:var(--text-3); font-size:13.5px; margin-bottom:44px;}
+.hero-shot{
+  max-width:980px; margin:0 auto; border-radius:var(--r-xl); overflow:hidden;
+  border:1px solid var(--card-bd); box-shadow:0 30px 80px var(--shadow);
+  transform:perspective(1400px) rotateX(3deg);
+}
+.hero-shot img{width:100%;}
+html[data-theme="dark"] .shot-light{display:none;}
+html[data-theme="light"] .shot-dark{display:none;}
+
+/* ===== Confiance ===== */
+.trust{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+@media (max-width:760px){ .trust{grid-template-columns:1fr;} }
+.trust-item{padding:18px 20px; background:var(--inlay); border:1px solid var(--inlay-bd); border-radius:var(--r-md);}
+.trust-item strong{display:block; font-family:var(--font-display); margin-bottom:4px;}
+.trust-item span{color:var(--text-2); font-size:14.5px;}
+
+/* ===== Cards fonctionnalités ===== */
+.grid-6{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+@media (max-width:900px){ .grid-6{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:600px){ .grid-6{grid-template-columns:1fr;} }
+.feat{
+  background:var(--ag-card); border:1px solid var(--card-bd); border-radius:var(--r-lg); padding:22px;
+  -webkit-backdrop-filter:blur(var(--blur-c)) saturate(140%); backdrop-filter:blur(var(--blur-c)) saturate(140%);
+  transition:transform .3s var(--ease), border-color .3s var(--ease);
+}
+.feat:hover{transform:translateY(-3px); border-color:var(--accent-bd);}
+.feat .ico{font-size:24px; margin-bottom:10px;}
+.feat h3{font-size:17px; margin-bottom:8px;}
+.feat p{color:var(--text-2); font-size:14.5px; margin:0;}
+
+/* ===== Captures ===== */
+.showcase{display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:start;}
+@media (max-width:860px){ .showcase{grid-template-columns:1fr;} }
+.shot-card{background:var(--ag-card); border:1px solid var(--card-bd); border-radius:var(--r-lg); overflow:hidden;
+  -webkit-backdrop-filter:blur(var(--blur-c)); backdrop-filter:blur(var(--blur-c));}
+.shot-card figcaption{padding:12px 16px; font-size:13.5px; color:var(--text-2);}
+.shot-card figure{margin:0;}
+.mobile-row{display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:18px;}
+.mobile-shot{width:min(260px,70vw); border-radius:26px; overflow:hidden; border:1px solid var(--card-bd); box-shadow:0 20px 50px var(--shadow);}
+
+/* ===== Sécurité ===== */
+.safety{
+  background:var(--amber-soft); border:1px solid var(--amber); border-radius:var(--r-lg); padding:28px;
+}
+.safety h3{font-size:20px; margin-bottom:10px;}
+.safety p{margin:0; color:var(--text-2);}
+
+/* ===== Tarifs ===== */
+.pricing{display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:860px; margin:0 auto;}
+@media (max-width:760px){ .pricing{grid-template-columns:1fr;} }
+.plan{
+  background:var(--ag-card); border:1px solid var(--card-bd); border-radius:var(--r-xl); padding:30px;
+  -webkit-backdrop-filter:blur(var(--blur-c)) saturate(140%); backdrop-filter:blur(var(--blur-c)) saturate(140%);
+  display:flex; flex-direction:column;
+}
+.plan.pro{border-color:var(--accent-bd); box-shadow:0 0 32px var(--accent-soft);}
+.plan .plan-name{font-family:var(--font-display); font-weight:800; font-size:19px;}
+.plan .plan-price{font-family:var(--font-display); font-weight:800; font-size:34px; margin:8px 0 2px;}
+.plan .plan-price small{font-size:15px; font-weight:600; color:var(--text-2);}
+.plan .plan-alt{color:var(--text-3); font-size:13.5px; margin-bottom:16px;}
+.plan ul{list-style:none; padding:0; margin:0 0 24px; flex:1;}
+.plan li{padding:7px 0; font-size:14.5px; color:var(--text-2); border-bottom:1px solid var(--inlay-bd); display:flex; gap:9px; align-items:baseline;}
+.plan li::before{content:'✓'; color:var(--good); font-weight:700; flex-shrink:0;}
+.plan li.lim::before{content:'·'; color:var(--text-3);}
+.plan .badge{display:inline-block; background:var(--accent); color:var(--accent-ink); font-family:var(--font-display);
+  font-weight:700; font-size:11.5px; padding:4px 12px; border-radius:var(--r-pill); margin-left:8px; vertical-align:middle;}
+.price-note{max-width:860px; margin:18px auto 0; color:var(--text-3); font-size:13px; text-align:center;}
+
+/* ===== FAQ ===== */
+.faq{max-width:760px; margin:0 auto;}
+.faq details{
+  background:var(--ag-card); border:1px solid var(--card-bd); border-radius:var(--r-md); margin-bottom:10px; padding:0 20px;
+}
+.faq summary{cursor:pointer; font-family:var(--font-display); font-weight:700; font-size:15.5px; padding:16px 0; list-style:none; position:relative; padding-right:28px;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::after{content:'+'; position:absolute; right:2px; top:50%; transform:translateY(-50%); color:var(--accent); font-size:20px; font-weight:600;}
+.faq details[open] summary::after{content:'–';}
+.faq details p{color:var(--text-2); font-size:14.5px; margin:0 0 16px;}
+
+/* ===== CTA final + footer ===== */
+.final{text-align:center;}
+.final h2{font-size:clamp(26px,4vw,40px); margin-bottom:24px;}
+footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30px; color:var(--text-3); font-size:13.5px;}
+.foot-row{display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+.foot-row a{color:var(--text-3); text-decoration:none;}
+.foot-row a:hover{color:var(--accent);}
+.foot-safety{margin-top:12px; font-size:12.5px;}
+
+/* ===== Reveal ===== */
+.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
+.reveal.in{opacity:1; transform:none;}
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1; transform:none; transition:none;}
+  .hero .rotator span{transition:none;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="nav-pill">
+      <a class="brand" href="#top" aria-label="Mon Plan de Vol — accueil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        <span>monplandevol.fr</span>
+      </a>
+      <div class="nav-links">
+        <a href="#fonctionnalites">Fonctionnalités</a>
+        <a href="#captures">L'app</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <a class="btn btn-primary nav-cta" href="https://app.monplandevol.fr">Ouvrir l'app</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <h1 class="reveal in">Votre briefing <span class="rotator" id="rotator">
+      <span class="on">météo</span><span>espaces aériens</span><span>RTBA</span><span>avitaillement</span>
+    </span><br>prêt en 2 minutes.</h1>
+    <p class="lead reveal in">Mon Plan de Vol rassemble sur un seul écran tout ce qu'un pilote VFR vérifie avant de voler. Préparation au sol, du pilote au pilote — vous décollez informé.</p>
+    <div class="hero-ctas reveal in">
+      <a class="btn btn-primary" href="https://app.monplandevol.fr">Commencer gratuitement</a>
+      <a class="btn btn-ghost" href="#fonctionnalites">Voir les fonctionnalités</a>
+    </div>
+    <p class="hero-note reveal in">Application web (PWA) — rien à installer, fonctionne sur Mac, PC, iPhone et Android. Compte gratuit requis.</p>
+    <div class="hero-shot reveal">
+      <img class="shot-light" src="app-main-light.jpg" alt="Mon Plan de Vol — vue principale : carte du trajet avec espaces aériens et résumé de navigation" loading="eager">
+      <img class="shot-dark" src="app-main-dark.jpg" alt="Mon Plan de Vol — vue principale en thème sombre" loading="eager">
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="trust reveal">
+      <div class="trust-item"><strong>🪂 Pensé pour le vol de loisir</strong><span>Autogire, ULM, avion léger — VFR en France métropolitaine.</span></div>
+      <div class="trust-item"><strong>🛠 Testé en conditions réelles</strong><span>Développé avec un pilote autogire en activité.</span></div>
+      <div class="trust-item"><strong>🔓 0 installation, 0 engagement</strong><span>PWA gratuite, l'offre Pro se résilie en deux clics.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="fonctionnalites">
+  <div class="wrap">
+    <div class="sec-label">Fonctionnalités</div>
+    <h2 class="sec-title">Tout votre pré-vol. Un seul écran.</h2>
+    <p class="sec-sub">Fini les six onglets ouverts avant chaque vol : l'essentiel est agrégé, décodé et posé sur la carte.</p>
+    <div class="grid-6">
+      <div class="feat reveal"><div class="ico">🌤</div><h3>Météo aviation</h3><p>METAR et TAF des terrains proches, vent par altitude, tendance sur votre créneau. Les données brutes, décodées, sans détour.</p></div>
+      <div class="feat reveal"><div class="ico">🗺</div><h3>Espaces aériens &amp; fréquences</h3><p>Les zones qui concernent votre vol, avec leurs fréquences, directement sur la carte. CTR, TMA, R, D, P : vous savez où vous mettez les pales.</p></div>
+      <div class="feat reveal"><div class="ico">🪖</div><h3>RTBA &amp; zones réglementées</h3><p>Le réseau très basse altitude défense sur votre trajet, mis à jour à chaque cycle AIRAC.</p></div>
+      <div class="feat reveal"><div class="ico">⛽</div><h3>Avitaillement &amp; déroutement</h3><p>Les terrains avec carburant autour de votre route, grades disponibles, données mises à jour chaque semaine.</p></div>
+      <div class="feat reveal"><div class="ico">📖</div><h3>Cartes VAC &amp; ressources</h3><p>Accès direct aux cartes VAC à jour et aux ressources officielles (SIA, Météo-France), au bon endroit, au bon moment.</p></div>
+      <div class="feat reveal"><div class="ico">📄</div><h3>Briefing PDF</h3><p>Votre synthèse de préparation exportée en un clic, à archiver ou à emporter. Préparée au sol, pour le sol.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="captures">
+  <div class="wrap">
+    <div class="sec-label">L'app en situation</div>
+    <h2 class="sec-title">Un vol réel, du trajet au PDF.</h2>
+    <p class="sec-sub">Montélimar → Aubenas → Aurillac : zones traversées, réseau RTBA, terrains d'avitaillement et fiches terrain complètes.</p>
+    <div class="showcase">
+      <figure class="shot-card reveal">
+        <img src="app-airspace.jpg" alt="Zones aériennes traversées, réseau RTBA et avitaillement à proximité du trajet" loading="lazy">
+        <figcaption>Espace aérien &amp; réglementaire : zones traversées avec fréquences, tronçons RTBA, avitaillement autour de la route.</figcaption>
+      </figure>
+      <figure class="shot-card reveal">
+        <img src="pdf-preview-1.png" alt="Briefing PDF généré par Mon Plan de Vol" loading="lazy">
+        <figcaption>Le briefing PDF : votre synthèse complète, prête à archiver.</figcaption>
+      </figure>
+    </div>
+    <figure class="shot-card reveal" style="margin-top:18px;">
+      <img src="app-terrain-data.jpg" alt="Données du trajet : METAR décodé, vents par altitude, carburants et services par terrain" loading="lazy">
+      <figcaption>Chaque terrain en détail : METAR décodé, vents par altitude, carburants, services et liens NOTAM / VAC officiels.</figcaption>
+    </figure>
+    <div class="mobile-row">
+      <div class="mobile-shot reveal"><img src="app-mobile-map.png" alt="Mon Plan de Vol sur iPhone : résumé du trajet et météo du jour" loading="lazy"></div>
+      <div class="mobile-shot reveal"><img src="app-mobile-2.png" alt="Mon Plan de Vol sur iPhone : carte du trajet et saisie du vol" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="safety reveal">
+      <h3>⚠️ Un outil de préparation au sol. Rien d'autre.</h3>
+      <p>Mon Plan de Vol n'est ni un GPS, ni un outil de navigation, ni un système certifié. Il vous aide à préparer votre vol — la décision et la conduite du vol restent au commandant de bord, avec les publications officielles (AIP, VAC, NOTAM, AZBA) comme seules références. C'est écrit dans nos <a href="https://app.monplandevol.fr/cgu.html?from=site" target="_blank" rel="noopener">CGU</a>, et on préfère aussi l'écrire ici.</p>
+    </div>
+  </div>
+</section>
+
+<section id="tarifs">
+  <div class="wrap">
+    <div class="sec-label">Tarifs</div>
+    <h2 class="sec-title" style="text-align:center;">Gratuit pour vos vols de tous les jours.<br>Pro pour les navigations à étapes.</h2>
+    <p class="sec-sub" style="text-align:center; margin-left:auto; margin-right:auto;">Les données à portée de sécurité — météo, zones, fréquences, avitaillement du vol préparé — ne sont jamais limitées.</p>
+    <div class="pricing">
+      <div class="plan reveal">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">0 €</div>
+        <div class="plan-alt">pour toujours</div>
+        <ul>
+          <li>Vol local (un terrain) : illimité</li>
+          <li>Trajet simple départ → arrivée : illimité</li>
+          <li>Météo, espaces aériens, fréquences, RTBA : accès complet</li>
+          <li>Avitaillement des terrains du vol préparé : accès complet</li>
+          <li class="lim">1 vol enregistré · 1 appareil synchronisé</li>
+          <li class="lim">Profil aéronef non sauvegardé entre sessions</li>
+          <li class="lim">POI limités (2 affichés, rayon 5 km) · avitaillement autour de la route : rayon 5 km</li>
+          <li class="lim">Export PDF du contenu Free, avec filigrane</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://app.monplandevol.fr">Créer un compte gratuit</a>
+      </div>
+      <div class="plan pro reveal">
+        <div class="plan-name">Pro <span class="badge">2 mois offerts en annuel</span></div>
+        <div class="plan-price">4,99 €<small> / mois</small></div>
+        <div class="plan-alt">ou 49,90 € / an</div>
+        <ul>
+          <li><strong>Étapes intermédiaires illimitées</strong> : préparez une navigation complète, pas juste un aller simple</li>
+          <li>Vols enregistrés illimités · appareils synchronisés illimités</li>
+          <li>Profil aéronef sauvegardé</li>
+          <li>POI illimités et rayons de recherche étendus (POI et avitaillement autour de la route)</li>
+          <li>Export PDF complet, sans filigrane</li>
+          <li>Résiliable à tout moment, effet fin de période</li>
+        </ul>
+        <a class="btn btn-primary" href="https://app.monplandevol.fr">Passer Pro</a>
+      </div>
+    </div>
+    <p class="price-note">Prix TTC — TVA non applicable, art. 293 B du CGI. Paiement sécurisé Stripe. Abonnement à reconduction tacite, résiliable en deux clics depuis l'app.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-label">FAQ</div>
+    <h2 class="sec-title">Questions fréquentes</h2>
+    <div class="faq">
+      <details class="reveal"><summary>Faut-il installer quelque chose ?</summary><p>Non. Mon Plan de Vol est une application web (PWA) : elle s'ouvre dans votre navigateur et peut s'ajouter à l'écran d'accueil de votre téléphone en deux gestes. Aucun store, aucune mise à jour manuelle.</p></details>
+      <details class="reveal"><summary>Pourquoi un compte est-il obligatoire ?</summary><p>Vos vols, votre profil aéronef et vos préférences sont synchronisés de façon sécurisée. Sans compte, impossible de vous les restituer d'un appareil à l'autre.</p></details>
+      <details class="reveal"><summary>Puis-je l'utiliser en vol ?</summary><p>Non, et c'est volontaire. L'outil est conçu pour la préparation au sol uniquement. En vol, fiez-vous à vos instruments et aux documents officiels.</p></details>
+      <details class="reveal"><summary>D'où viennent les données ?</summary><p>De sources reconnues : SIA/DGAC, OpenAIP, BASULM (FFPLUM), METAR/TAF des réseaux d'observation, Open-Meteo, OpenStreetMap. Elles sont indicatives : les publications officielles restent votre référence.</p></details>
+      <details class="reveal"><summary>Comment résilier l'offre Pro ?</summary><p>Depuis l'onglet Compte, en deux clics, via le portail sécurisé Stripe. L'accès Pro reste actif jusqu'à la fin de la période payée.</p></details>
+      <details class="reveal"><summary>Mes données sont-elles revendues ?</summary><p>Non. Voir notre <a href="https://app.monplandevol.fr/politique.html?from=site" target="_blank" rel="noopener">politique de confidentialité</a> — pas de publicité, pas de revente de données.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap reveal">
+    <h2>Votre prochain vol se prépare ici.</h2>
+    <a class="btn btn-primary" href="https://app.monplandevol.fr">Commencer gratuitement</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <span>© <span id="year">2026</span> Mon Plan de Vol</span>
+      <span>
+        <a href="https://app.monplandevol.fr/cgu.html?from=site" target="_blank" rel="noopener">CGU</a> ·
+        <a href="https://app.monplandevol.fr/politique.html?from=site" target="_blank" rel="noopener">Confidentialité</a> ·
+        <a href="https://app.monplandevol.fr/mentions.html?from=site" target="_blank" rel="noopener">Mentions légales</a> ·
+        <a href="mailto:contact@monplandevol.fr">Contact</a>
+      </span>
+    </div>
+    <div class="foot-safety">Outil de préparation au sol — ne jamais utiliser pour la navigation en vol.</div>
+  </div>
+</footer>
+
+<script>
+// Rotation des mots du hero
+(function(){
+  const words = document.querySelectorAll('#rotator span');
+  let i = 0;
+  // largeur stable : caler sur le mot le plus long
+  const rot = document.getElementById('rotator');
+  let maxW = 0;
+  words.forEach(w => { const c = w.cloneNode(true); c.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;'; document.body.appendChild(c); maxW = Math.max(maxW, c.offsetWidth); c.remove(); });
+  rot.style.minWidth = maxW + 'px';
+  setInterval(() => {
+    words[i].classList.remove('on'); words[i].style.position = 'absolute';
+    i = (i + 1) % words.length;
+    words[i].classList.add('on'); words[i].style.position = 'relative';
+  }, 2600);
+})();
+// Reveal au scroll
+(function(){
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+})();
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
