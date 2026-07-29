@@ -20,7 +20,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => docum
 /* ===== Tokens Aero Glass (extraits, auto-portés) ===== */
 :root{
   --blur-p:28px; --blur-c:24px; --r-xl:24px; --r-lg:16px; --r-md:12px; --r-pill:999px;
-  --pad:20px; --maxw:1100px; --ease:cubic-bezier(.4,0,.2,1); --t-theme:.5s;
+  --pad:20px; --maxw:1320px; --ease:cubic-bezier(.4,0,.2,1); --t-theme:.5s;
   --font-display:'Plus Jakarta Sans',system-ui,sans-serif;
   --font-body:'Hanken Grotesk',system-ui,sans-serif;
 }
@@ -100,6 +100,7 @@ nav{position:sticky; top:0; z-index:50; padding:14px 0; }
 .btn-ghost{background:var(--accent-soft); color:var(--accent);}
 .btn-ghost:hover{box-shadow:0 0 16px var(--accent-soft);}
 .nav-cta{padding:9px 18px; font-size:14px;}
+.menu-cta{display:none;}
 .nav-right{display:flex; align-items:center; gap:9px;}
 .nav-toggle{
   display:none; align-items:center; justify-content:center; width:40px; height:40px; padding:0;
@@ -129,7 +130,7 @@ nav{position:sticky; top:0; z-index:50; padding:14px 0; }
 .hero-ctas{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:12px;}
 .hero-note{color:var(--text-3); font-size:13.5px; margin-bottom:44px;}
 .hero-shot{
-  max-width:980px; margin:0 auto; border-radius:var(--r-xl); overflow:hidden;
+  max-width:1176px; margin:0 auto; border-radius:var(--r-xl); overflow:hidden;
   border:1px solid var(--card-bd); box-shadow:0 30px 80px var(--shadow);
   transform:perspective(1400px) rotateX(3deg);
 }
@@ -170,7 +171,7 @@ html[data-theme="light"] .shot-dark{display:none;}
 .shot-card figcaption{padding:12px 16px; font-size:13.5px; color:var(--text-2);}
 .shot-card figure{margin:0;}
 .mobile-row{display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:18px;}
-.mobile-shot{width:min(260px,70vw); border-radius:26px; overflow:hidden; border:1px solid var(--card-bd); box-shadow:0 20px 50px var(--shadow);}
+.mobile-shot{width:min(312px,70vw); border-radius:26px; overflow:hidden; border:1px solid var(--card-bd); box-shadow:0 20px 50px var(--shadow);}
 
 /* ===== Sécurité ===== */
 .safety{
@@ -274,7 +275,8 @@ body.lb-open{overflow:hidden;}
   footer{margin-top:16px; padding:22px 0 32px;}
 
   .nav-toggle{display:inline-flex;}
-  .nav-cta{padding:9px 15px; font-size:13.5px;}
+  /* Le CTA quitte la pilule — il s'y cassait en deux lignes — et rejoint le bas du menu. */
+  .nav-cta{display:none;}
   /* Fond opaque volontaire : un ancêtre (.nav-pill) porte déjà un backdrop-filter,
      ce qui isole le backdrop — un enfant ne peut plus flouter la page derrière lui. */
   .nav-links{
@@ -286,6 +288,13 @@ body.lb-open{overflow:hidden;}
   .nav-links.open{display:flex;}
   .nav-links a{padding:12px 14px; border-radius:var(--r-md); font-size:15px; color:var(--text);}
   .nav-links a:active{background:var(--accent-soft); color:var(--accent);}
+  .nav-links a.menu-cta{
+    display:block; margin-top:8px; text-align:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink);
+    font-family:var(--font-display); font-weight:700; font-size:15.5px; padding:13px 14px;
+    box-shadow:0 8px 22px var(--accent-soft);
+  }
+  .nav-links a.menu-cta:active{background:var(--accent); color:var(--accent-ink);}
 }
 @media (max-width:400px){
   .brand{font-size:15px;}
@@ -303,11 +312,11 @@ body.lb-open{overflow:hidden;}
         <span>monplandevol.fr</span>
       </a>
       <div class="nav-links" id="nav-links">
+        <a href="histoire.html">L'histoire</a>
         <a href="#fonctionnalites">Fonctionnalités</a>
-        <a href="#captures">L'app</a>
         <a href="#tarifs">Tarifs</a>
         <a href="#faq">FAQ</a>
-        <a href="histoire.html">L'histoire</a>
+        <a href="https://app.monplandevol.fr" class="menu-cta">Ouvrir l'app</a>
       </div>
       <div class="nav-right">
         <a class="btn btn-primary nav-cta" href="https://app.monplandevol.fr">Ouvrir l'app</a>
