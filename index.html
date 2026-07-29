@@ -29,6 +29,7 @@ html[data-theme="dark"]{
   --glow-a:rgba(0,219,231,.14); --glow-a-xy:78% 6%;
   --glow-b:rgba(112,0,255,.13); --glow-b-xy:8% 94%;
   --panel:rgba(255,255,255,.07); --panel-bd:rgba(255,255,255,.11);
+  --menu-bg:#171f33;
   --ag-card:rgba(255,255,255,.12); --card-bd:rgba(255,255,255,.16);
   --inlay:rgba(255,255,255,.04); --inlay-bd:rgba(255,255,255,.07);
   --text:#dae2fd; --text-2:#b9cacb; --text-3:#849495;
@@ -42,6 +43,7 @@ html[data-theme="light"]{
   --glow-a:rgba(255,168,120,.34); --glow-a-xy:82% 88%;
   --glow-b:rgba(120,150,255,.24); --glow-b-xy:6% 6%;
   --panel:rgba(255,255,255,.55); --panel-bd:rgba(255,255,255,.85);
+  --menu-bg:#f5f7fc;
   --ag-card:rgba(255,255,255,.38); --card-bd:rgba(20,32,60,.11);
   --inlay:rgba(255,255,255,.5); --inlay-bd:rgba(20,32,60,.06);
   --text:#16203a; --text-2:#44546d; --text-3:#6c7c8e;
@@ -273,12 +275,13 @@ body.lb-open{overflow:hidden;}
 
   .nav-toggle{display:inline-flex;}
   .nav-cta{padding:9px 15px; font-size:13.5px;}
+  /* Fond opaque volontaire : un ancêtre (.nav-pill) porte déjà un backdrop-filter,
+     ce qui isole le backdrop — un enfant ne peut plus flouter la page derrière lui. */
   .nav-links{
     display:none; position:absolute; left:0; right:0; top:calc(100% + 8px);
     flex-direction:column; align-items:stretch; gap:2px; padding:8px;
-    background:var(--panel); border:1px solid var(--panel-bd); border-radius:var(--r-lg);
-    -webkit-backdrop-filter:blur(var(--blur-p)) saturate(150%); backdrop-filter:blur(var(--blur-p)) saturate(150%);
-    box-shadow:inset 0 1px 0 var(--hi), 0 18px 44px var(--shadow);
+    background:var(--menu-bg); border:1px solid var(--card-bd); border-radius:var(--r-lg);
+    box-shadow:0 18px 44px var(--shadow);
   }
   .nav-links.open{display:flex;}
   .nav-links a{padding:12px 14px; border-radius:var(--r-md); font-size:15px; color:var(--text);}
