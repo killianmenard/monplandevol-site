@@ -95,6 +95,45 @@ nav{position:sticky; top:0; z-index:50; padding:14px 0; }
 .nav-links{display:flex; gap:22px; align-items:center;}
 .nav-links a{color:var(--text-2); text-decoration:none; font-weight:600; font-size:14px;}
 .nav-links a:hover{color:var(--accent);}
+
+/* ===== 07/08 — PASTILLE GLISSANTE DE NAVIGATION =====
+   Portage du composant pose sur les onglets de l'app (v2.09.2). Une seule
+   surface glisse d'un lien a l'autre au survol, au lieu de quatre changements
+   de couleur independants : l'oeil suit un objet qui se deplace, pas des mots
+   qui s'allument.
+
+   🔑 DEGRADATION : la couleur d'accent au survol n'est neutralisee QUE si le
+   script a pose la classe ag-hl-on. JS en echec, desactive, ou pastille non
+   mesurable => la navigation retombe exactement sur son comportement d'avant.
+   C'est la meme precaution que dans l'app, et c'est ce qui autorise a retirer
+   le surlignage sans creer une navigation muette.
+
+   Le survol garde un changement de couleur, mais vers --text (une nuance plus
+   sombre) et non vers l'accent : deux signaux d'accent superposes se
+   concurrencent, la pastille doit rester le seul porteur de la couleur. */
+.nav-links{position:relative;}
+.nav-links a{position:relative; z-index:1; transition:color .18s var(--ease);}
+.nav-links.ag-hl-on a:hover{color:var(--text);}
+.nav-links.ag-hl-on a.current{color:var(--text);}
+.ag-nav-hl{
+  position:absolute; top:0; left:0; z-index:0;
+  border-radius:var(--r-pill); pointer-events:none; opacity:0;
+  /* accent-soft : ~12 % d'opacite. Un accent plein imposerait d'inverser la
+     couleur du libelle, qui clignoterait a chaque deplacement. */
+  background:var(--accent-soft); border:1px solid var(--accent-bd);
+  /* 220 ms : au-dela, le curseur arrive avant la pastille et l'effet se lit
+     comme un retard ; en deca, il n'y a plus de glissement percu. */
+  transition:transform .22s var(--ease), width .22s var(--ease),
+             height .22s var(--ease), opacity .18s ease;
+  will-change:transform,width;
+}
+/* Menu mobile deplie : la pilule passe en colonne et se ferme au clic, une
+   pastille qui glisse verticalement pour disparaitre aussitot n'apporte rien. */
+.nav-links.open .ag-nav-hl{display:none;}
+@media (prefers-reduced-motion:reduce){
+  .ag-nav-hl{transition:none;}
+  .nav-links a{transition:none;}
+}
 .btn{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 22px; border-radius:var(--r-md); font-family:var(--font-display); font-weight:700; font-size:15px;
@@ -1006,6 +1045,59 @@ document.getElementById('year').textContent = new Date().getFullYear();
   document.addEventListener('pointerdown', onMove, { passive: true });
   document.addEventListener('mouseleave', function () { dot.classList.remove('vis'); el.classList.remove('vis'); });
   document.addEventListener('mouseenter', function () { if (moved) { dot.classList.add('vis'); el.classList.add('vis'); } });
+})();
+</script>
+<script>
+/* ===== 07/08 — PASTILLE GLISSANTE DE NAVIGATION =====
+   Portage vanilla du composant de l'app. Delegation sur le conteneur : aucun
+   ecouteur par lien, et un lien ajoute plus tard en heriterait sans code. */
+(function () {
+  var links = document.getElementById('nav-links');
+  if (!links) return;
+  var bar = document.createElement('span');
+  bar.className = 'ag-nav-hl';
+  bar.setAttribute('aria-hidden', 'true');
+  links.insertBefore(bar, links.firstChild);
+  links.classList.add('ag-hl-on');
+
+  // Les liens de nav n'ont aucun rembourrage sur ordinateur : une pastille
+  // calee au pixel sur le texte ressemblerait a un surlignage de traitement de
+  // texte. On l'ecarte de 11px x 7px pour lui donner une assise de bouton.
+  var PX = 11, PY = 7;
+  var raf = null;
+
+  function moveTo(el) {
+    var h = links.getBoundingClientRect(), r = el.getBoundingClientRect();
+    // Un lien masque (le CTA du menu mobile sur ordinateur) mesure 0 : on ne
+    // deplace pas la pastille dessus, on l'efface.
+    if (!(r.width > 0 && r.height > 0)) { bar.style.opacity = '0'; return; }
+    bar.style.width  = (r.width  + PX * 2) + 'px';
+    bar.style.height = (r.height + PY * 2) + 'px';
+    bar.style.transform = 'translate(' + (r.left - h.left - PX) + 'px,'
+                                       + (r.top  - h.top  - PY) + 'px)';
+    bar.style.opacity = '1';
+  }
+
+  // Au repos, la pastille se pose sur le lien de la page courante s'il existe
+  // (histoire.html porte .current). Sur la page d'accueil il n'y en a pas :
+  // elle s'efface plutot que de revendiquer une section ou l'on n'est pas.
+  function rest() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function () {
+      var cur = links.querySelector('a.current');
+      if (cur) moveTo(cur); else bar.style.opacity = '0';
+    });
+  }
+
+  links.addEventListener('mouseover', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('a') : null;
+    if (t && links.contains(t)) moveTo(t);
+  });
+  links.addEventListener('mouseleave', rest);
+  window.addEventListener('resize', rest);
+  // Le chargement des polices change la largeur des libelles, donc la mesure.
+  try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(rest); } catch (_) {}
+  rest();
 })();
 </script>
 </body>
