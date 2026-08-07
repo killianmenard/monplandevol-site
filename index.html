@@ -228,7 +228,65 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
 .foot-row a:hover{color:var(--accent);}
 .foot-safety{margin-top:12px; font-size:12.5px;}
 
-    /* ===== MOTIF DE POINTS EN FOND (07/08) =====
+    /* ===== CADRES DE PRESENTATION — navigateur & iPhone (07/08) =====
+     Equivalents CSS des composants Safari et Iphone : aucun SVG, aucun JS, aucune
+     image supplementaire a charger. Le cadre est dessine autour de la capture
+     existante par un pseudo-element.
+
+     Pourquoi un cadre : une capture posee nue se lit comme une image de stock. La
+     meme capture dans une fenetre de navigateur se lit comme « voila l'ecran que
+     tu auras ». C'est la seule raison de le faire — pas la decoration.
+
+     ⚠️ pdf-preview-1.png en est volontairement exclu : c'est un document PDF, pas
+     une page web. L'enfermer dans une fenetre de navigateur raconterait quelque
+     chose de faux. */
+
+  /* --- fenetre de navigateur --- */
+  .mock-web { position: relative; padding-top: 34px; background: var(--ag-card); }
+  .mock-web::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 34px;
+    background: var(--ag-card); border-bottom: 1px solid var(--card-bd);
+    /* Les trois pastilles, en un seul degrade : trois elements en moins dans le DOM. */
+    background-image:
+      radial-gradient(circle 5px at 16px 17px, #FF5F57 100%, transparent 0),
+      radial-gradient(circle 5px at 34px 17px, #FEBC2E 100%, transparent 0),
+      radial-gradient(circle 5px at 52px 17px, #28C840 100%, transparent 0);
+    background-repeat: no-repeat;
+  }
+  .mock-web::after {
+    content: 'app.monplandevol.fr';
+    position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+    min-width: 190px; max-width: 62%; text-align: center;
+    padding: 2px 14px; border-radius: 999px;
+    background: var(--bg-1, rgba(0,0,0,.05));
+    font-size: 11.5px; line-height: 1.6; color: var(--text-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* --- chassis iPhone --- */
+  .mock-phone {
+    position: relative; padding: 10px; border-radius: 44px;
+    background: #0d0d0f; border: none !important;
+    box-shadow: 0 24px 60px var(--shadow), inset 0 0 0 2px rgba(255,255,255,.10);
+  }
+  .mock-phone img { border-radius: 34px; display: block; }
+  /* Encoche : posee au-dessus de la capture, comme sur l'appareil. */
+  .mock-phone::after {
+    content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 108px; height: 24px; border-radius: 0 0 16px 16px; background: #0d0d0f;
+  }
+
+  @media (max-width: 700px) {
+    /* Sous 700px la barre de navigateur mange une part visible de la capture pour
+       ne plus rien raconter : on la retire. */
+    .mock-web { padding-top: 0; }
+    .mock-web::before, .mock-web::after { display: none; }
+    .mock-phone { padding: 7px; border-radius: 34px; }
+    .mock-phone img { border-radius: 28px; }
+    .mock-phone::after { top: 7px; width: 88px; height: 20px; }
+  }
+
+  /* ===== MOTIF DE POINTS EN FOND (07/08) =====
      Equivalent CSS du DotPattern : un radial-gradient repete, sans SVG ni JS.
 
      🔑 LE MASQUE EST ADAPTE, PAS RECOPIE. Celui de l'exemple concentre les points
@@ -413,7 +471,7 @@ body.lb-open{overflow:hidden;}
       <a class="btn btn-ghost" href="#fonctionnalites">Voir les fonctionnalités</a>
     </div>
     <p class="hero-note reveal in">Application web (PWA) — rien à installer, fonctionne sur Mac, PC, iPhone et Android. Compte gratuit requis.</p>
-    <div class="hero-shot reveal">
+    <div class="hero-shot mock-web reveal">
       <img class="shot-light" src="app-main-light.jpg" alt="monplandevol.fr — vue principale : carte du trajet avec espaces aériens et résumé de navigation" loading="eager">
       <img class="shot-dark" src="app-main-dark.jpg" alt="monplandevol.fr — vue principale en thème sombre" loading="eager">
     </div>
@@ -455,7 +513,7 @@ body.lb-open{overflow:hidden;}
     <h2 class="sec-title">Un vol réel, du trajet au PDF.</h2>
     <p class="sec-sub">Montélimar → Aubenas → Aurillac : zones traversées, réseau RTBA, terrains d'avitaillement et fiches terrain complètes.</p>
     <div class="showcase">
-      <figure class="shot-card reveal">
+      <figure class="shot-card mock-web reveal">
         <img src="app-airspace.jpg" alt="Zones aériennes traversées, réseau RTBA et avitaillement à proximité du trajet" loading="lazy">
         <figcaption>Espace aérien &amp; réglementaire : zones traversées avec fréquences, tronçons RTBA, avitaillement autour de la route.</figcaption>
       </figure>
@@ -464,13 +522,13 @@ body.lb-open{overflow:hidden;}
         <figcaption>Le briefing PDF : votre synthèse complète, prête à archiver.</figcaption>
       </figure>
     </div>
-    <figure class="shot-card reveal" style="margin-top:18px;">
+    <figure class="shot-card mock-web reveal" style="margin-top:18px;">
       <img src="app-terrain-data.jpg" alt="Données du trajet : METAR décodé, vents par altitude, carburants et services par terrain" loading="lazy">
       <figcaption>Chaque terrain en détail : METAR décodé, vents par altitude, carburants, services et liens NOTAM / VAC officiels.</figcaption>
     </figure>
     <div class="mobile-row">
-      <div class="mobile-shot reveal"><img src="app-mobile-map.png" alt="monplandevol.fr sur iPhone : résumé du trajet et météo du jour" loading="lazy"></div>
-      <div class="mobile-shot reveal"><img src="app-mobile-2.png" alt="monplandevol.fr sur iPhone : carte du trajet et saisie du vol" loading="lazy"></div>
+      <div class="mobile-shot mock-phone reveal"><img src="app-mobile-map.png" alt="monplandevol.fr sur iPhone : résumé du trajet et météo du jour" loading="lazy"></div>
+      <div class="mobile-shot mock-phone reveal"><img src="app-mobile-2.png" alt="monplandevol.fr sur iPhone : carte du trajet et saisie du vol" loading="lazy"></div>
     </div>
   </div>
 </section>
