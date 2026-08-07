@@ -46,9 +46,13 @@ html[data-theme="light"]{
   --menu-bg:#f5f7fc;
   --ag-card:rgba(255,255,255,.38); --card-bd:rgba(20,32,60,.11);
   --inlay:rgba(255,255,255,.5); --inlay-bd:rgba(20,32,60,.06);
-  --text:#16203a; --text-2:#44546d; --text-3:#6c7c8e;
-  --accent:#0792a6; --accent-2:#0aa6bd; --accent-ink:#ffffff;
-  --accent-soft:rgba(7,146,166,.12); --accent-bd:rgba(7,146,166,.3);
+  --text:#16203a; --text-2:#44546d; --text-3:#64748B;
+  /* Contraste WCAG AA (audit 07/08) : #0792a6 plafonnait a 3,70:1 en texte comme
+     en aplat, et #0aa6bd — la FIN du degrade des boutons primaires — tombait a
+     2,92:1 sous le blanc, le pire ratio de la page. Les deux passent desormais
+     au-dessus de 4,5:1. Le theme sombre n'est pas concerne et reste inchange. */
+  --accent:#0B7A8C; --accent-2:#0d7d92; --accent-ink:#ffffff;
+  --accent-soft:rgba(11,122,140,.12); --accent-bd:rgba(11,122,140,.3);
   --amber:#a9741a; --amber-soft:rgba(169,116,26,.14);
   --good:#0a9a82; --shadow:rgba(40,55,95,.18); --hi:rgba(255,255,255,.9);
 }
@@ -94,7 +98,7 @@ nav{position:sticky; top:0; z-index:50; padding:14px 0; }
   padding:12px 22px; border-radius:var(--r-md); font-family:var(--font-display); font-weight:700; font-size:15px;
   text-decoration:none; cursor:pointer; border:1px solid var(--accent-bd); transition:.2s var(--ease);
 }
-.btn-primary{border:none; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink);
+.btn-primary{border:none; background:var(--accent); color:var(--accent-ink);
   box-shadow:0 8px 24px var(--accent-soft);}
 .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px var(--accent-soft);}
 .btn-ghost{background:var(--accent-soft); color:var(--accent);}
@@ -222,6 +226,16 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
 .foot-row a:hover{color:var(--accent);}
 .foot-safety{margin-top:12px; font-size:12.5px;}
 
+/* ===== Longueur de ligne (audit 07/08) =====
+   Aucun bloc de prose n'avait de max-width : la FAQ tournait a 99 caracteres par
+   ligne, une legende a 163, la note du hero a 175. Au-dela d'environ 75 l'oeil
+   perd la ligne suivante en revenant a la marge. 68ch cible ~72 caracteres reels
+   avec cette fonte. margin-inline:auto pour les blocs centres. */
+.faq p, .shot-card figcaption, .hero-note, .price-note, .foot-safety, .plan .plan-alt {
+  max-width: 68ch;
+}
+.hero-note, .price-note, .foot-safety { margin-inline: auto; }
+
 /* ===== Reveal ===== */
 /* Duree ramenee de .7s a .5s : au-dela de ~600ms une apparition au scroll cesse
    d'etre percue comme une reponse au geste et devient une attente. */
@@ -311,7 +325,7 @@ body.lb-open{overflow:hidden;}
   .nav-links a:active{background:var(--accent-soft); color:var(--accent);}
   .nav-links a.menu-cta{
     display:block; margin-top:8px; text-align:center;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink);
+    background:var(--accent); color:var(--accent-ink);
     font-family:var(--font-display); font-weight:700; font-size:15.5px; padding:13px 14px;
     box-shadow:0 8px 22px var(--accent-soft);
   }
