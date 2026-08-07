@@ -194,19 +194,131 @@ html[data-theme="light"] .shot-dark{display:none;}
 .grid-6{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
 @media (max-width:900px){ .grid-6{grid-template-columns:repeat(2,1fr);} }
 @media (max-width:600px){ .grid-6{grid-template-columns:1fr;} }
+/* ===== 07/08 — CARTES DE FONCTIONNALITES, D'APRES AnimatedList/Notification =====
+
+   Ce qui est repris du composant : la pastille d'icone coloree, l'ombre en trois
+   couches, l'agrandissement a 103 % au survol en 200 ms, et le ressort de
+   l'entree en cascade.
+
+   ⛔ CE QUI NE L'EST PAS, ET POURQUOI :
+   1. La boucle infinie. AnimatedList est un flux d'evenements — les elements
+      entrent, poussent les autres, sortent. Une fonctionnalite n'est pas un
+      evenement : elle doit rester lisible tant qu'on la lit. Neuf cartes qui
+      defilent en continu rendraient la section inutilisable. On garde donc
+      l'entree, une seule fois, au passage du scroll.
+   2. Le degrade de bas de liste (h-1/4 bg-gradient-to-t). Dans le composant il
+      masque le debordement d'un flux ; ici il effacerait le texte de la
+      derniere rangee. C'est un correctif de flux, pas un element de style. */
 .feat{
+  /* 07/08 — la pastille rejoint le titre sur la meme ligne. Grille a deux
+     colonnes plutot qu'un flex imbrique : le HTML reste plat (pastille, titre,
+     paragraphe en freres), donc aucune balise a ajouter dans les neuf cartes.
+     align-items:center aligne la pastille sur le milieu du titre, y compris
+     quand celui-ci passe a deux lignes. */
+  display:grid; grid-template-columns:40px minmax(0,1fr);
+  column-gap:12px; row-gap:12px; align-items:center; align-content:start;
+  position:relative;
   background:var(--ag-card); border:1px solid var(--card-bd); border-radius:var(--r-lg); padding:22px;
   -webkit-backdrop-filter:blur(var(--blur-c)) saturate(140%); backdrop-filter:blur(var(--blur-c)) saturate(140%);
-  transition:transform .3s var(--ease), border-color .3s var(--ease);
+  /* Ombre en trois couches, comme le composant : un liseré de contact, une
+     ombre courte qui pose la carte, une longue qui la detache du fond. Une seule
+     ombre large donne un halo flou ; trois donnent du relief. */
+  box-shadow:0 0 0 1px rgba(10,20,40,.03), 0 2px 4px rgba(10,20,40,.05), 0 12px 24px rgba(10,20,40,.05);
+  transition:transform .2s ease-in-out, border-color .2s ease-in-out, box-shadow .2s ease-in-out;
 }
-.feat:hover{transform:translateY(-3px); border-color:var(--accent-bd);}
-.feat .ico{font-size:24px; margin-bottom:10px;}
-.feat h3{font-size:17px; margin-bottom:8px;}
-.feat p{color:var(--text-2); font-size:14.5px; margin:0;}
+/* Theme sombre : l'ombre portee ne se voit pas sur un fond sombre. Le composant
+   la remplace par une lueur interne haute — c'est ce qui donne le relief. */
+html[data-theme="dark"] .feat{
+  box-shadow:0 -20px 80px -20px rgba(255,255,255,.12) inset;
+}
+/* 103 % et non un deplacement vertical : l'agrandissement rapproche la carte du
+   lecteur au lieu de la faire glisser, c'est le geste du composant. z-index pour
+   qu'elle passe au-dessus des bordures de ses voisines pendant l'agrandissement. */
+.feat:hover{transform:scale(1.03); border-color:var(--accent-bd); z-index:1;}
+html[data-theme="dark"] .feat:hover{
+  box-shadow:0 -20px 80px -20px rgba(255,255,255,.2) inset;
+}
+
+/* ===== 07/08 — BALAYAGE LUMINEUX, D'APRES ShinyButton =====
+
+   Le composant superpose deux couches : un degre en biais qui balaye le CONTOUR
+   (mask-composite:exclude, epaisseur 1px) et un masque qui balaye le TEXTE.
+   Les deux sont repris, mais pas au meme endroit.
+
+   ⛔ PAS DE BOUCLE SUR LES NEUF CARTES. ShinyButton brille en permanence parce
+   qu'il est seul sur la page et qu'il appelle au clic. Neuf cartes qui scintillent
+   sans arret, c'est une machine a sous : plus rien n'attire l'oeil puisque tout
+   bouge. Le balayage devient donc une REPONSE AU SURVOL — le geste declenche la
+   lumiere. Seule la carte mise en avant (.spot) garde la boucle : c'est
+   exactement le role du composant d'origine, appeler l'attention sur un element.
+
+   Technique : --x n'est pas animable sans @property (support inegal). On obtient
+   le meme deplacement avec un degrade de 280% de large dont on anime la position
+   de fond, ce qui marche partout et reste compose par le GPU. */
+.feat::after{
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  pointer-events:none; opacity:0; padding:1px;
+  background:linear-gradient(-75deg,
+              transparent 0%, transparent 36%,
+              var(--accent) 47%, var(--accent) 53%,
+              transparent 64%, transparent 100%);
+  background-size:280% 100%; background-position:130% 0;
+  /* Le double masque evide l'interieur : seul le liseré d'1px reste peint. */
+  -webkit-mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
+          mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  transition:opacity .2s ease;
+}
+.feat:hover::after{opacity:.9; animation:agShine 1.5s var(--ease);}
+@keyframes agShine{from{background-position:130% 0;} to{background-position:-50% 0;}}
+
+/* La carte mise en avant : contour en boucle, comme le bouton d'origine. */
+.feat.spot::after{opacity:.75; animation:agShine 3.4s var(--ease) infinite;}
+.feat.spot:hover::after{opacity:1;}
+/* Et son etiquette recoit le balayage de TEXTE du composant. C'est le seul
+   endroit ou il a un sens : une etiquette courte en capitales, de la forme d'un
+   bouton. Sur un titre de carte, un masque qui passe rendrait un mot illisible
+   a chaque cycle — on ne fait pas clignoter ce qui doit se lire. */
+.feat.spot .tag{
+  -webkit-mask-image:linear-gradient(-75deg,#000 32%, rgba(0,0,0,.5) 46%, #000 62%);
+          mask-image:linear-gradient(-75deg,#000 32%, rgba(0,0,0,.5) 46%, #000 62%);
+  -webkit-mask-size:280% 100%; mask-size:280% 100%;
+  animation:agShineTxt 3.4s var(--ease) infinite;
+}
+@keyframes agShineTxt{
+  from{-webkit-mask-position:130% 0; mask-position:130% 0;}
+  to  {-webkit-mask-position:-50% 0; mask-position:-50% 0;}
+}
+
+/* Pastille d'icone : 40px, coin arrondi, fond plein colore. C'est la signature
+   visuelle du composant.
+   🎨 PALETTE : les couleurs de l'exemple (#FF3D71, #1E86FF...) appartiennent a
+   une autre marque. Ici les six teintes sont classees par FAMILLE
+   D'INFORMATION — ciel, espace aerien, alerte reglementaire, sol, extras,
+   documents — pour qu'un pilote qui balaye la grille lise le regroupement avant
+   de lire les titres. Une couleur par carte, choisie au hasard, n'aurait ete
+   que de la decoration. */
+.feat .ico{
+  display:flex; align-items:center; justify-content:center;
+  width:40px; height:40px; border-radius:12px;
+  font-size:19px; line-height:1; margin-bottom:0;
+  box-shadow:0 4px 10px rgba(10,20,40,.14);
+}
+.feat .ico.t-sky   { background:#2E7BC4; }
+.feat .ico.t-teal  { background:#0E8E9E; }
+.feat .ico.t-amber { background:#C08417; }
+.feat .ico.t-green { background:#12A085; }
+.feat .ico.t-plum  { background:#7C5AC2; }
+.feat .ico.t-ink   { background:#5B6B84; }
+.feat h3{font-size:17px; margin-bottom:0;}
+/* Le paragraphe et l'etiquette traversent les deux colonnes : sans cela, le
+   texte se retrouverait coince dans la colonne de 40px de la pastille. */
+.feat p{color:var(--text-2); font-size:14.5px; margin:0; grid-column:1 / -1;}
 .feat.spot{border-color:var(--accent-bd); box-shadow:0 0 26px var(--accent-soft);}
 .feat .tag{display:inline-block; background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent-bd);
   font-family:var(--font-display); font-weight:700; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-  padding:2px 10px; border-radius:var(--r-pill); margin-bottom:8px;}
+  padding:2px 10px; border-radius:var(--r-pill); margin-bottom:0;
+  grid-column:1 / -1; justify-self:start;}
 
 /* ===== Captures ===== */
 .showcase{display:grid; grid-template-columns:1.5fr 1fr; gap:18px; align-items:start;}
@@ -563,11 +675,35 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
   transition-delay:var(--rd, 0ms);
 }
 .reveal.in{opacity:1; transform:none;}
+
+/* Entree des cartes de fonctionnalites, d'apres le ressort d'AnimatedList
+   (stiffness 300 / damping 20 chez Framer Motion). En CSS pur, le depassement
+   se rend par une courbe dont la sortie franchit 1 : .22,1.2,.36,1. La carte
+   arrive legerement trop loin puis se replace — c'est ce depassement qui fait
+   « ressort » et non « fondu ». On ajoute l'echelle, absente du reveal
+   d'origine : le composant fait entrer ses elements en grandissant. */
+.grid-6 > .feat.reveal{
+  transform:translateY(18px) scale(.96);
+  transition:opacity .42s var(--ease), transform .5s cubic-bezier(.22,1.2,.36,1);
+  transition-delay:var(--rd, 0ms);
+}
+.grid-6 > .feat.reveal.in{transform:none;}
 /* Le delai en cascade (--rd) est pose par le script sur les enfants d'un
    conteneur [data-stagger] : sans lui, les 9 cartes de la grille apparaissent
    toutes au meme instant et l'effet se lit comme un bloc, pas comme une liste. */
 @media (prefers-reduced-motion:reduce){
   .reveal{opacity:1; transform:none; transition:none; transition-delay:0ms !important;}
+  /* ⚠️ Specificite : la regle des cartes de fonctionnalites vaut (0,3,1) et
+     l'emporterait sur le .reveal ci-dessus, qui ne vaut que (0,1,0). Sans cette
+     ligne, le ressort continuerait de jouer pour qui a demande l'inverse. */
+  .grid-6 > .feat.reveal{transform:none; transition:none; transition-delay:0ms !important;}
+  .feat, .feat:hover{transition:none; transform:none;}
+  /* Un balayage en boucle est exactement ce que ce reglage demande d'eviter. Le
+     liseré de la carte mise en avant reste, fige : c'est une mise en avant, pas
+     une animation — la retirer ferait perdre l'information. */
+  .feat::after, .feat:hover::after{animation:none;}
+  .feat.spot::after{background:none; border:1px solid var(--accent-bd); opacity:1; padding:0;}
+  .feat.spot .tag{-webkit-mask-image:none; mask-image:none; animation:none;}
   .hero .rotator span{transition:none;}
 }
 
@@ -715,15 +851,15 @@ body.lb-open{overflow:hidden;}
     <h2 class="sec-title">Tout votre pré-vol. Un seul écran.</h2>
     <p class="sec-sub">Fini les six onglets ouverts avant chaque vol : sécurité, logistique du voyage et curiosités du trajet — agrégées, décodées et posées sur la carte.</p>
     <div class="grid-6" data-stagger>
-      <div class="feat reveal"><div class="ico">🌤</div><h3>Météo aviation</h3><p>METAR et TAF des terrains proches, vent par altitude, tendance sur votre créneau. Les données brutes, décodées, sans détour.</p></div>
-      <div class="feat reveal"><div class="ico">🗺</div><h3>Espaces aériens &amp; fréquences</h3><p>Les zones qui concernent votre vol, avec leurs fréquences, directement sur la carte. CTR, TMA, R, D, P : vous savez où vous mettez les pales.</p></div>
-      <div class="feat reveal"><div class="ico">🪖</div><h3>RTBA &amp; zones réglementées</h3><p>Le réseau très basse altitude défense tracé sur votre carte, mis à jour à chaque cycle AIRAC. L'activation du jour se vérifie sur l'AZBA officielle, accessible en un lien.</p></div>
-      <div class="feat reveal"><div class="ico">🛬</div><h3>Fiches terrain</h3><p>Pour chaque terrain du vol : METAR décodé, vents par altitude, carburants disponibles et services sur place. La logistique du voyage, pas seulement la météo.</p></div>
-      <div class="feat reveal"><div class="ico">⛽</div><h3>Avitaillement &amp; déroutement</h3><p>Les terrains avec carburant autour de votre route, grades disponibles, données mises à jour chaque semaine.</p></div>
-      <div class="feat reveal"><div class="ico">⏱</div><h3>Temps de vol &amp; carburant</h3><p>Avec les paramètres de votre machine, le temps de vol et la consommation sont dégrossis sur l'ensemble du trajet. Un ordre de grandeur pour caler vos escales — votre devis de carburant reste le vôtre.</p></div>
-      <div class="feat spot reveal"><span class="tag">Ce que les autres ne font pas</span><div class="ico">🏰</div><h3>Points d'intérêt au sol</h3><p>Châteaux, viaducs, villages, sommets, lacs : les curiosités qui méritent un survol, le long de votre route et autour du terrain d'arrivée — pas seulement dans la région que vous connaissez déjà.</p></div>
-      <div class="feat reveal"><div class="ico">📖</div><h3>Cartes VAC, NOTAM &amp; ressources</h3><p>Les liens vers les publications officielles — cartes VAC, NOTAM du SIA, AZBA, Météo-France — rangés au bon endroit, à côté du terrain concerné. Vous consultez la source, pas une copie.</p></div>
-      <div class="feat reveal"><div class="ico">📄</div><h3>Briefing PDF</h3><p>Votre synthèse de préparation exportée en un clic, à archiver ou à emporter. Préparée au sol, pour le sol.</p></div>
+      <div class="feat reveal"><div class="ico t-sky">🌤</div><h3>Météo aviation</h3><p>METAR et TAF des terrains proches, vent par altitude, tendance sur votre créneau. Les données brutes, décodées, sans détour.</p></div>
+      <div class="feat reveal"><div class="ico t-teal">🗺</div><h3>Espaces aériens &amp; fréquences</h3><p>Les zones qui concernent votre vol, avec leurs fréquences, directement sur la carte. CTR, TMA, R, D, P : vous savez où vous mettez les pales.</p></div>
+      <div class="feat reveal"><div class="ico t-amber">🪖</div><h3>RTBA &amp; zones réglementées</h3><p>Le réseau très basse altitude défense tracé sur votre carte, mis à jour à chaque cycle AIRAC. L'activation du jour se vérifie sur l'AZBA officielle, accessible en un lien.</p></div>
+      <div class="feat reveal"><div class="ico t-teal">🛬</div><h3>Fiches terrain</h3><p>Pour chaque terrain du vol : METAR décodé, vents par altitude, carburants disponibles et services sur place. La logistique du voyage, pas seulement la météo.</p></div>
+      <div class="feat reveal"><div class="ico t-green">⛽</div><h3>Avitaillement &amp; déroutement</h3><p>Les terrains avec carburant autour de votre route, grades disponibles, données mises à jour chaque semaine.</p></div>
+      <div class="feat reveal"><div class="ico t-green">⏱</div><h3>Temps de vol &amp; carburant</h3><p>Avec les paramètres de votre machine, le temps de vol et la consommation sont dégrossis sur l'ensemble du trajet. Un ordre de grandeur pour caler vos escales — votre devis de carburant reste le vôtre.</p></div>
+      <div class="feat spot reveal"><span class="tag">Ce que les autres ne font pas</span><div class="ico t-plum">🏰</div><h3>Points d'intérêt au sol</h3><p>Châteaux, viaducs, villages, sommets, lacs : les curiosités qui méritent un survol, le long de votre route et autour du terrain d'arrivée — pas seulement dans la région que vous connaissez déjà.</p></div>
+      <div class="feat reveal"><div class="ico t-ink">📖</div><h3>Cartes VAC, NOTAM &amp; ressources</h3><p>Les liens vers les publications officielles — cartes VAC, NOTAM du SIA, AZBA, Météo-France — rangés au bon endroit, à côté du terrain concerné. Vous consultez la source, pas une copie.</p></div>
+      <div class="feat reveal"><div class="ico t-ink">📄</div><h3>Briefing PDF</h3><p>Votre synthèse de préparation exportée en un clic, à archiver ou à emporter. Préparée au sol, pour le sol.</p></div>
     </div>
   </div>
 </section>
