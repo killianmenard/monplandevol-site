@@ -223,10 +223,19 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
 .foot-safety{margin-top:12px; font-size:12.5px;}
 
 /* ===== Reveal ===== */
-.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s var(--ease), transform .7s var(--ease);}
+/* Duree ramenee de .7s a .5s : au-dela de ~600ms une apparition au scroll cesse
+   d'etre percue comme une reponse au geste et devient une attente. */
+.reveal{
+  opacity:0; transform:translateY(16px);
+  transition:opacity .5s var(--ease), transform .5s var(--ease);
+  transition-delay:var(--rd, 0ms);
+}
 .reveal.in{opacity:1; transform:none;}
+/* Le delai en cascade (--rd) est pose par le script sur les enfants d'un
+   conteneur [data-stagger] : sans lui, les 9 cartes de la grille apparaissent
+   toutes au meme instant et l'effet se lit comme un bloc, pas comme une liste. */
 @media (prefers-reduced-motion:reduce){
-  .reveal{opacity:1; transform:none; transition:none;}
+  .reveal{opacity:1; transform:none; transition:none; transition-delay:0ms !important;}
   .hero .rotator span{transition:none;}
 }
 
@@ -372,7 +381,7 @@ body.lb-open{overflow:hidden;}
     <div class="sec-label">Fonctionnalités</div>
     <h2 class="sec-title">Tout votre pré-vol. Un seul écran.</h2>
     <p class="sec-sub">Fini les six onglets ouverts avant chaque vol : sécurité, logistique du voyage et curiosités du trajet — agrégées, décodées et posées sur la carte.</p>
-    <div class="grid-6">
+    <div class="grid-6" data-stagger>
       <div class="feat reveal"><div class="ico">🌤</div><h3>Météo aviation</h3><p>METAR et TAF des terrains proches, vent par altitude, tendance sur votre créneau. Les données brutes, décodées, sans détour.</p></div>
       <div class="feat reveal"><div class="ico">🗺</div><h3>Espaces aériens &amp; fréquences</h3><p>Les zones qui concernent votre vol, avec leurs fréquences, directement sur la carte. CTR, TMA, R, D, P : vous savez où vous mettez les pales.</p></div>
       <div class="feat reveal"><div class="ico">🪖</div><h3>RTBA &amp; zones réglementées</h3><p>Le réseau très basse altitude défense tracé sur votre carte, mis à jour à chaque cycle AIRAC. L'activation du jour se vérifie sur l'AZBA officielle, accessible en un lien.</p></div>
@@ -427,7 +436,7 @@ body.lb-open{overflow:hidden;}
     <div class="sec-label">Tarifs</div>
     <h2 class="sec-title" style="text-align:center;">Gratuit pour vos vols de tous les jours.<br>Pro pour les navigations à étapes.</h2>
     <p class="sec-sub" style="text-align:center; margin-left:auto; margin-right:auto;">Les données à portée de sécurité — météo, zones, fréquences, avitaillement du vol préparé — ne sont jamais limitées.</p>
-    <div class="pricing">
+    <div class="pricing" data-stagger>
       <div class="plan reveal">
         <div class="plan-name">Free</div>
         <div class="plan-price">0 €</div>
@@ -467,7 +476,7 @@ body.lb-open{overflow:hidden;}
   <div class="wrap">
     <div class="sec-label">FAQ</div>
     <h2 class="sec-title">Questions fréquentes</h2>
-    <div class="faq">
+    <div class="faq" data-stagger>
       <details class="reveal"><summary>Faut-il installer quelque chose ?</summary><p>Non. monplandevol.fr est une application web (PWA) : elle s'ouvre dans votre navigateur et peut s'ajouter à l'écran d'accueil de votre téléphone en deux gestes. Aucun store, aucune mise à jour manuelle.</p></details>
       <details class="reveal"><summary>Pourquoi un compte est-il obligatoire ?</summary><p>Vos vols, votre profil aéronef et vos préférences sont synchronisés de façon sécurisée. Sans compte, impossible de vous les restituer d'un appareil à l'autre.</p></details>
       <details class="reveal"><summary>Puis-je l'utiliser en vol ?</summary><p>Non, et c'est volontaire. L'outil est conçu pour la préparation au sol uniquement. En vol, fiez-vous à vos instruments et aux documents officiels.</p></details>
@@ -578,8 +587,24 @@ body.lb-open{overflow:hidden;}
   closeBtn.addEventListener('click', close);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !lb.hidden) close(); });
 })();
-// Reveal au scroll
+// Reveal au scroll (+ cascade sur les conteneurs [data-stagger])
 (function(){
+  // 50ms par element, plafonnes a 350ms : au-dela, les derniers items d'une
+  // grille paraissent en retard sur le geste de scroll. La reference UI Pro Max
+  // recommande 20-40ms au-dela de 10 items et deconseille de depasser 100ms.
+  var STEP = 50, CAP = 350;
+  var reduce = false;
+  try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) {}
+
+  if (!reduce) {
+    document.querySelectorAll('[data-stagger]').forEach(function (box) {
+      var kids = box.querySelectorAll(':scope > .reveal');
+      for (var i = 0; i < kids.length; i++) {
+        kids[i].style.setProperty('--rd', Math.min(i * STEP, CAP) + 'ms');
+      }
+    });
+  }
+
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 })();
