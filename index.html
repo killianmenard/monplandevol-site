@@ -35,6 +35,7 @@ html[data-theme="dark"]{
   --text:#dae2fd; --text-2:#b9cacb; --text-3:#849495;
   --accent:#00dbe7; --accent-2:#74f5ff; --accent-ink:#002022;
   --accent-soft:rgba(0,219,231,.15); --accent-bd:rgba(0,219,231,.34);
+  --dot: rgba(218,226,253,.13);   /* points du fond — theme sombre */
   --amber:#ffce6b; --amber-soft:rgba(255,206,107,.16);
   --good:#3fe0c0; --shadow:rgba(0,0,0,.5); --hi:rgba(255,255,255,.15);
 }
@@ -53,6 +54,7 @@ html[data-theme="light"]{
      au-dessus de 4,5:1. Le theme sombre n'est pas concerne et reste inchange. */
   --accent:#0B7A8C; --accent-2:#0d7d92; --accent-ink:#ffffff;
   --accent-soft:rgba(11,122,140,.12); --accent-bd:rgba(11,122,140,.3);
+  --dot: rgba(22,32,58,.16);      /* points du fond — theme clair */
   --amber:#a9741a; --amber-soft:rgba(169,116,26,.14);
   --good:#0a9a82; --shadow:rgba(40,55,95,.18); --hi:rgba(255,255,255,.9);
 }
@@ -226,7 +228,30 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
 .foot-row a:hover{color:var(--accent);}
 .foot-safety{margin-top:12px; font-size:12.5px;}
 
-  /* ===== ONDE AU CLIC (ripple) — 07/08 =====
+    /* ===== MOTIF DE POINTS EN FOND (07/08) =====
+     Equivalent CSS du DotPattern : un radial-gradient repete, sans SVG ni JS.
+
+     🔑 LE MASQUE EST ADAPTE, PAS RECOPIE. Celui de l'exemple concentre les points
+     dans un cercle de 300px au centre — il est calibre pour une demo de 500px de
+     haut. Sur une page de plusieurs milliers de pixels, un cercle centre poserait
+     une tache au milieu de la FAQ. Ici les points habillent le haut de page et
+     s'effacent en descendant : ils accompagnent la promesse, puis laissent le
+     contenu tranquille.
+
+     Opacite volontairement basse : sur un site qui vend de la fiabilite, un fond
+     qui se remarque est un fond rate. */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(circle at 1px 1px, var(--dot, rgba(22,32,58,.16)) 1px, transparent 0);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.55) 38%, transparent 72%);
+            mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.55) 38%, transparent 72%);
+  }
+  /* Le contenu passe au-dessus du motif. Sans cela, un fond fixe couvrirait la
+     page entiere, liens compris. */
+  .wrap, header, footer, main { position: relative; z-index: 1; }
+
+/* ===== ONDE AU CLIC (ripple) — 07/08 =====
      Retour tactile au point exact du clic. currentColor plutot qu'une couleur
      fixe : l'onde est claire sur les aplats fonces (btn-primary) et foncee sur
      les surfaces claires, sans une regle par variante.
