@@ -371,15 +371,15 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
             mask-image: radial-gradient(ellipse 62% 58% at 50% 44%, #000 42%, transparent 78%);
   }
   /* Les voisins situent la France sans lui disputer le regard. */
-  #ag-eu .nb path { fill: var(--text-3); opacity: .10; stroke: var(--text-3); stroke-width: .8; }
+  #ag-eu .nb path { fill: var(--text-3); opacity: .15; stroke: var(--text-3); stroke-width: .8; }
   /* La France : c'est le perimetre reel du produit, elle doit se lire d'un coup. */
-  #ag-eu .fr path { fill: var(--accent); opacity: .16; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
-  #ag-eu .rt path { fill: none; stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 5 6; opacity: .40; }
-  #ag-eu .ad circle { fill: var(--accent); opacity: .55; }
+  #ag-eu .fr path { fill: var(--accent); opacity: .24; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+  #ag-eu .rt path { fill: none; stroke: var(--accent); stroke-width: 1.3; stroke-dasharray: 5 6; opacity: .55; }
+  #ag-eu .ad circle { fill: var(--accent); opacity: .70; }
   /* Delta PLEIN : sous 12px un contour se referme visuellement et devient une
      tache. Le remplissage reste net a toutes les tailles, et le glyphe se
      distingue nettement du curseur avion, qui lui reste detaille. */
-  #ag-eu .fl path { fill: var(--accent); stroke: none; opacity: .72; }
+  #ag-eu .fl path { fill: var(--accent); stroke: none; opacity: .88; }
   /* Voile de lisibilite : la carte passe DERRIERE, le texte DEVANT. Le titre gagne
      du contraste sans qu'on touche a sa couleur, et la carte garde son opacite
      d'origine sur les bords. Baisser l'opacite du fond entier l'aurait effacee
@@ -388,9 +388,14 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
     content: ''; position: absolute; z-index: 0; pointer-events: none;
     top: 0; left: 50%; transform: translateX(-50%);
     width: min(1000px, 100%); height: 80%;
+    /* 07/08 (2) — 0.84 -> 0.42. A 84 % le voile ne temperait plus la carte, il
+       l'effacait : sous le titre il ne restait qu'un aplat de fond. Le degrade
+       demarre aussi plus tot (20 % au lieu de 40 %) pour concentrer ce qui reste
+       de masquage sur le titre, la ou le contraste compte, et rendre les bords
+       au trafic aerien. */
     background: radial-gradient(ellipse 54% 62% at 50% 40%,
-                var(--bg-0) 0%, var(--bg-0) 40%, transparent 76%);
-    opacity: .84;
+                var(--bg-0) 0%, var(--bg-0) 20%, transparent 74%);
+    opacity: .42;
   }
   .hero > *:not(#ag-eu) { position: relative; z-index: 1; }
 
@@ -424,8 +429,10 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
 
   .hero .hero-note {
     display: inline-flex; align-items: center; gap: 9px;
-    /* 52px au-dessus : c'est cette bande vide qui laisse voir les avions. */
-    margin: 52px auto 30px;
+    /* 156px au-dessus (52 x 3) : c'est cette bande vide qui laisse voir les
+       avions traverser. En dessous de ~150px, une route passe sous le texte
+       avant d'avoir eu le temps d'etre remarquee. */
+    margin: 156px auto 34px;
     padding: 8px 17px;
     width: auto;                     /* neutralise le max-width 68ch en bloc */
     border-radius: var(--r-pill);
@@ -450,11 +457,13 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
 
   /* Le voile suivait la hauteur du hero : en l'etirant, son degrade se serait
      dilue et le titre aurait perdu le contraste gagne hier. On le plafonne. */
-  .hero::after { height: min(76%, 700px); }
+  .hero::after { height: min(76%, 820px); }
 
   @media (max-width: 700px) {
     .hero { padding: 64px 0 44px; }
-    .hero .hero-note { margin: 34px auto 22px; font-size: 12.5px; }
+    /* Mobile : x2 et non x3. A 102px l'appel a l'action passait sous la ligne
+       de flottaison d'un iPhone — l'animation ne vaut pas ce prix la. */
+    .hero .hero-note { margin: 68px auto 22px; font-size: 12.5px; }
     .hero .hero-shot { margin-top: 40px; }
   }
 
