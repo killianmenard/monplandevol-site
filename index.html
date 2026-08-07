@@ -226,6 +226,21 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
 .foot-row a:hover{color:var(--accent);}
 .foot-safety{margin-top:12px; font-size:12.5px;}
 
+  /* ===== ONDE AU CLIC (ripple) — 07/08 =====
+     Retour tactile au point exact du clic. currentColor plutot qu'une couleur
+     fixe : l'onde est claire sur les aplats fonces (btn-primary) et foncee sur
+     les surfaces claires, sans une regle par variante.
+     overflow:hidden rogne l'onde au bouton ; les liens de navigation en sont
+     exclus, ils n'ont pas de surface propre. */
+  .ag-rip-host { position: relative; overflow: hidden; }
+  .ag-rip {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: currentColor; opacity: .26; transform: scale(0);
+    animation: agRipple .55s cubic-bezier(.22,.61,.36,1) forwards;
+  }
+  @keyframes agRipple { to { transform: scale(1); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .ag-rip { display: none; } }
+
 /* ===== Longueur de ligne (audit 07/08) =====
    Aucun bloc de prose n'avait de max-width : la FAQ tournait a 99 caracteres par
    ligne, une legende a 163, la note du hero a 175. Au-dela d'environ 75 l'oeil
@@ -623,6 +638,36 @@ body.lb-open{overflow:hidden;}
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 })();
 document.getElementById('year').textContent = new Date().getFullYear();
+
+// ===== Onde au clic sur les boutons (07/08) =====
+(function _agRipple() {
+  var SKIP = '[disabled], [aria-disabled="true"], .nav-links a';
+  document.addEventListener('pointerdown', function (e) {
+    try {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      var t = e.target && e.target.closest ? e.target.closest('button, .btn, .btn-primary, .btn-ghost, .cta, summary') : null;
+      if (!t || t.matches(SKIP) || t.closest(SKIP)) return;
+      var r = t.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      var d = Math.max(
+        Math.hypot(e.clientX - r.left, e.clientY - r.top),
+        Math.hypot(r.right - e.clientX, e.clientY - r.top),
+        Math.hypot(e.clientX - r.left, r.bottom - e.clientY),
+        Math.hypot(r.right - e.clientX, r.bottom - e.clientY)
+      ) * 2;
+      t.classList.add('ag-rip-host');
+      var s = document.createElement('span');
+      s.className = 'ag-rip';
+      s.style.width = s.style.height = d + 'px';
+      s.style.left = (e.clientX - r.left - d / 2) + 'px';
+      s.style.top  = (e.clientY - r.top  - d / 2) + 'px';
+      t.appendChild(s);
+      var kill = function () { try { s.remove(); } catch (_) {} };
+      s.addEventListener('animationend', kill);
+      setTimeout(kill, 900);
+    } catch (_) {}
+  }, true);
+})();
 </script>
 </body>
 </html>
