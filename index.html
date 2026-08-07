@@ -290,6 +290,58 @@ html[data-theme="dark"] .feat:hover{
   to  {-webkit-mask-position:-50% 0; mask-position:-50% 0;}
 }
 
+/* ===== 07/08 — LE TRAITEMENT DE CARTE ETENDU AU RESTE DU SITE =====
+
+   Memes ombres, meme balayage au survol que les cartes de fonctionnalites, pour
+   les trois autres familles de cartes : offres, reperes de confiance, FAQ.
+
+   ⛔ LES CARTES DE CAPTURE (.shot-card) EN SONT EXCLUES, pour une raison
+   technique et une raison de fond. Technique : .mock-web utilise deja ::before ET
+   ::after pour dessiner la fenetre de navigateur — le balayage ecraserait la
+   barre d'adresse. De fond : ce sont des cadres autour d'une image, pas des
+   surfaces de contenu ; un liseré lumineux y ferait concurrence a la capture.
+
+   ⛔ ET LA FAQ NE GRANDIT PAS AU SURVOL. Un accordeon est une commande qu'on
+   vise : agrandir la ligne sous le pointeur deplace le libelle au moment ou l'on
+   s'appreterait a cliquer. Elle recoit l'ombre et le balayage, pas l'echelle. */
+.plan, .trust-item, .faq details{
+  position:relative;
+  box-shadow:0 0 0 1px rgba(10,20,40,.03), 0 2px 4px rgba(10,20,40,.05), 0 12px 24px rgba(10,20,40,.05);
+  transition:transform .2s ease-in-out, border-color .2s ease-in-out, box-shadow .2s ease-in-out;
+}
+html[data-theme="dark"] .plan,
+html[data-theme="dark"] .trust-item,
+html[data-theme="dark"] .faq details{
+  box-shadow:0 -20px 80px -20px rgba(255,255,255,.12) inset;
+}
+/* Echelle proportionnee a la surface : 3 % sur une carte de 380px se lit, 3 %
+   sur une colonne de tarif de 500px de haut donne un a-coup. */
+.trust-item:hover{transform:scale(1.03); border-color:var(--accent-bd); z-index:1;}
+.plan:hover{transform:scale(1.02); border-color:var(--accent-bd); z-index:1;}
+.faq details:hover{border-color:var(--accent-bd);}
+
+.plan::after, .trust-item::after, .faq details::after{
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  pointer-events:none; opacity:0; padding:1px;
+  background:linear-gradient(-75deg,
+              transparent 0%, transparent 36%,
+              var(--accent) 47%, var(--accent) 53%,
+              transparent 64%, transparent 100%);
+  background-size:280% 100%; background-position:130% 0;
+  -webkit-mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
+          mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  transition:opacity .2s ease;
+}
+.plan:hover::after, .trust-item:hover::after, .faq details:hover::after{
+  opacity:.9; animation:agShine 1.5s var(--ease);
+}
+/* L'offre Pro est la carte mise en avant de sa section : elle garde la boucle,
+   comme .feat.spot dans la grille des fonctionnalites. Une seule par section —
+   au-dela, plus rien n'est mis en avant. */
+.plan.pro::after{opacity:.75; animation:agShine 3.4s var(--ease) infinite;}
+.plan.pro:hover::after{opacity:1;}
+
 /* Pastille d'icone : 40px, coin arrondi, fond plein colore. C'est la signature
    visuelle du composant.
    🎨 PALETTE : les couleurs de l'exemple (#FF3D71, #1E86FF...) appartiennent a
@@ -656,6 +708,15 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
   @keyframes agRipple { to { transform: scale(1); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .ag-rip { display: none; } }
 
+/* ===== BOUTONS MAGNETIQUES (07/08) =====
+   Le bouton se laisse attirer par le pointeur qui s'en approche.
+
+   ⚠️ Le deplacement est pose en style INLINE par le script, ce qui l'emporte sur
+   toute regle CSS. Le petit soulevement au survol de .btn-primary serait donc
+   perdu : il est repris DANS le calcul du script (-2px quand le pointeur est sur
+   le bouton), pas ici. Ne pas le remettre en CSS, les deux se supprimeraient. */
+  .ag-mag { will-change: transform; }
+
 /* ===== Longueur de ligne (audit 07/08) =====
    Aucun bloc de prose n'avait de max-width : la FAQ tournait a 99 caracteres par
    ligne, une legende a 163, la note du hero a 175. Au-dela d'environ 75 l'oeil
@@ -704,6 +765,13 @@ footer{border-top:1px solid var(--inlay-bd); padding:28px 0 40px; margin-top:30p
   .feat::after, .feat:hover::after{animation:none;}
   .feat.spot::after{background:none; border:1px solid var(--accent-bd); opacity:1; padding:0;}
   .feat.spot .tag{-webkit-mask-image:none; mask-image:none; animation:none;}
+  .plan, .trust-item, .faq details,
+  .plan:hover, .trust-item:hover, .faq details:hover{transition:none; transform:none;}
+  .plan::after, .trust-item::after, .faq details::after,
+  .plan:hover::after, .trust-item:hover::after, .faq details:hover::after{animation:none;}
+  .plan.pro::after{background:none; border:1px solid var(--accent-bd); opacity:1; padding:0;}
+  /* Boutons magnetiques : le script ne s'installe pas du tout dans ce mode,
+     rien a neutraliser ici. */
   .hero .rotator span{transition:none;}
 }
 
@@ -1234,6 +1302,114 @@ document.getElementById('year').textContent = new Date().getFullYear();
   // Le chargement des polices change la largeur des libelles, donc la mesure.
   try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(rest); } catch (_) {}
   rest();
+})();
+</script>
+<script>
+/* ===== BOUTONS MAGNETIQUES (07/08) — d'apres MagneticButton =====
+   Le composant d'origine s'appuie sur les ressorts de Framer Motion. Ici le
+   ressort est integre a la main : a = (-k(x-cible) - c*v) / m, avec les valeurs
+   de la demo (stiffness 150, damping 15, mass 0.1). Un simple lissage
+   exponentiel aurait donne un glissement mou, sans la reprise seche du ressort.
+
+   ⚠️ TROIS GARDE-FOUS, chacun pour une raison precise :
+   1. pointer:fine seulement. Sur un ecran tactile il n'y a pas d'approche — le
+      doigt arrive deja au contact. L'effet ne ferait que decaler la cible.
+   2. prefers-reduced-motion : le script ne s'installe pas.
+   3. Le centre du bouton est calcule SANS son deplacement courant
+      (rect - translation en cours). Mesurer un element deja deplace le ferait
+      fuir tout seul, chaque image nourrissant la suivante. */
+(function () {
+  var fine = false, reduce = false;
+  try { fine = matchMedia('(pointer:fine)').matches; } catch (_) {}
+  try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) {}
+  if (!fine || reduce) return;
+
+  var els = document.querySelectorAll('.btn');
+  if (!els.length) return;
+
+  var K = 150, C = 15, M = 0.1;   // ressort de la demo
+  var H = 0.008;                  // pas d'integration fixe, cf. plus bas
+  // 100px de rayon et 0.35 d'intensite (0.5 dans l'exemple) : au-dela, le bouton
+  // sort visiblement de son alignement et la page parait mal calee.
+  var R = 100, S = 0.35, LIFT = -2;
+
+  var items = [];
+  for (var i = 0; i < els.length; i++) {
+    els[i].classList.add('ag-mag');
+    items.push({ el: els[i], x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0 });
+  }
+
+  var raf = null, last = 0;
+
+  function step(now) {
+    var dt = last ? (now - last) / 1000 : 0.016;
+    last = now;
+    if (dt > 0.05) dt = 0.05;          // onglet en arriere-plan : pas d'explosion
+    var moving = false;
+
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      // ⚠️ PAS FIXE DE 8ms, ET C'EST UNE CONDITION DE STABILITE, PAS UN CONFORT.
+      // L'integrateur explicite diverge des que le pas depasse 2m/c, soit
+      // 2 x 0.1 / 15 = 13.3ms ici. Avec un simple « dt / 2 », une image a 50ms
+      // (onglet en arriere-plan, machine chargee) donne un pas de 25ms : verifie
+      // numeriquement, le bouton part a l'infini en une poignee d'images. Le
+      // decoupage garantit un pas de 7.1ms au pire.
+      var nsub = Math.ceil(dt / H); if (nsub > 8) nsub = 8;
+      var h = dt / nsub;
+      for (var k = 0; k < nsub; k++) {
+        it.vx += ((-K * (it.x - it.tx) - C * it.vx) / M) * h;
+        it.vy += ((-K * (it.y - it.ty) - C * it.vy) / M) * h;
+        it.x += it.vx * h;
+        it.y += it.vy * h;
+      }
+      if (Math.abs(it.x - it.tx) > 0.05 || Math.abs(it.y - it.ty) > 0.05 ||
+          Math.abs(it.vx) > 0.05 || Math.abs(it.vy) > 0.05) {
+        moving = true;
+      } else {
+        it.x = it.tx; it.y = it.ty; it.vx = it.vy = 0;
+      }
+      it.el.style.transform = (it.x || it.y)
+        ? 'translate3d(' + it.x.toFixed(2) + 'px,' + it.y.toFixed(2) + 'px,0)'
+        : '';
+    }
+    raf = moving ? requestAnimationFrame(step) : (last = 0, null);
+  }
+
+  function wake() { if (!raf) { last = 0; raf = requestAnimationFrame(step); } }
+
+  window.addEventListener('pointermove', function (e) {
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i], r = it.el.getBoundingClientRect();
+      // Centre au repos = centre mesure moins le deplacement deja applique.
+      var cx = r.left + r.width / 2 - it.x;
+      var cy = r.top + r.height / 2 - it.y;
+      var dx = e.clientX - cx, dy = e.clientY - cy;
+      var d = Math.hypot(dx, dy);
+      if (d < R) {
+        it.tx = dx * S;
+        it.ty = dy * S;
+        // Le soulevement du survol, repris ici : en CSS il serait ecrase par le
+        // style inline pose a chaque image.
+        if (e.clientX >= r.left && e.clientX <= r.right &&
+            e.clientY >= r.top  && e.clientY <= r.bottom) it.ty += LIFT;
+      } else {
+        it.tx = 0; it.ty = 0;
+      }
+    }
+    wake();
+  }, { passive: true });
+
+  // Sortie de fenetre : sans cela le dernier bouton attire resterait decale.
+  window.addEventListener('pointerleave', function () {
+    for (var i = 0; i < items.length; i++) { items[i].tx = 0; items[i].ty = 0; }
+    wake();
+  });
+  // Le defilement change la position relative au pointeur, qui lui n'a pas bouge.
+  window.addEventListener('scroll', function () {
+    for (var i = 0; i < items.length; i++) { items[i].tx = 0; items[i].ty = 0; }
+    wake();
+  }, { passive: true });
 })();
 </script>
 </body>
